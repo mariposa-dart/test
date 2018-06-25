@@ -12,7 +12,7 @@ class DOMTester {
   final RenderContext renderContext = new RenderContext(null);
 
   /// The `package:html` that the tree is rendered into.
-  final Document document = new Document();
+  final Document document = new Document.html('<html><body></body></html>');
 
   final Map<Element, List<Tuple2<DOMTesterElement, Widget>>> _elements = {};
   void Function() _rerender;
@@ -20,7 +20,7 @@ class DOMTester {
   /// Renders a UI that can then be interacted with.
   void render([Node Function() app]) {
     if (_rerender != null) {
-      clear();
+      close();
       _rerender();
     } else if (app != null) {
       _rerender = () => _render(app);
@@ -36,6 +36,25 @@ class DOMTester {
         .add(data);
   }
 
+  /// Returns a [Future] that completes when the [element] fires an event with the given [eventName].
+  Future<T> nextEvent<T>(DOMTesterElement element, String eventName) {
+    var c = new Completer<T>();
+    StreamSubscription<T> sub;
+
+    sub = element.listen<T>(
+        eventName, (value) => c.isCompleted ? null : c.complete(value));
+
+    sub.onDone(() => c.isCompleted
+        ? null
+        : c.completeError(new StateError(
+            'The element was closed before an event was fired.')));
+
+    sub.onError((e, st) => c.isCompleted ? null : c.completeError(e, st));
+    return c.future;
+  }
+
+  Future close() => clear();
+
   /// Clears the DOM, deleting all elements.
   Future clear() async {
     for (var el in _elements.keys) {
@@ -47,7 +66,9 @@ class DOMTester {
       }
     }
 
-    for (var el in DOMTesterElement._cache.keys) {
+    _elements.clear();
+
+    for (var el in DOMTesterElement._cache.keys.toList()) {
       await DOMTesterElement._cache[el]?.close();
     }
   }
@@ -104,11 +125,13 @@ class DOMTester {
       _compileAttributes(node.attributes, target.attributes);
 
       for (var child in node.children) {
-        if (child is TextNode)
+        if (child is TextNode) {
           _renderNode(child, target, context.createChild());
-        var el = new Element.tag(child.tagName);
-        target.append(el);
-        _renderNode(child, el, context.createChild());
+        } else {
+          var el = new Element.tag(child.tagName);
+          target.append(el);
+          _renderInner(child, el, context.createChild());
+        }
       }
     }
   }
