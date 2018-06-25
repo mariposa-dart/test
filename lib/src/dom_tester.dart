@@ -1,8 +1,24 @@
 import 'dart:async';
 import 'package:html/dom.dart' hide Node;
+import 'package:html/dom.dart' as html show Node;
 import 'package:html_builder/html_builder.dart';
 import 'package:mariposa/mariposa.dart';
 import 'package:tuple/tuple.dart';
+
+/// Converts a `package:html` [node] into a `package:html_builder` [Node].
+Node convertNode(html.Node node) {
+  if (node is Text) {
+    return new TextNode(node.data);
+  } else if (node is Element) {
+    return new NodeBuilder(node.localName)
+        .changeAttributes(
+            node.attributes.map((k, v) => new MapEntry(k.toString(), v)))
+        .changeChildren(node.nodes.map(convertNode))
+        .build();
+  }
+
+  throw new ArgumentError();
+}
 
 /// A class that renders Mariposa widgets into a `package:html` [Document].
 ///

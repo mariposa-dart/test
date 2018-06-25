@@ -8,6 +8,7 @@ void main() {
   Completer afterRenderCompleter, beforeDestroyCompleter;
   DOMTester tester;
   DOMTesterElement h1Element;
+  Node convertedH1Element;
 
   var app = () {
     return div(
@@ -28,10 +29,23 @@ void main() {
     beforeDestroyCompleter = new Completer();
     tester = new DOMTester()..render(app);
     h1Element = tester.querySelector('h1');
+    convertedH1Element = convertNode(h1Element.nativeElement);
     print(tester.document.outerHtml);
   });
 
   tearDown(() => tester.close());
+
+  test('convertNode', () {
+    expect(
+      convertedH1Element,
+      allOf(
+        hasTagName('h1'),
+        hasClassString('heading'),
+        hasAttributes({'id': 'foo', 'class': 'heading'}),
+        hasChildren(hasLength(1)),
+      ),
+    );
+  });
 
   test('getElementById', () {
     expect(tester.getElementById('foo'), h1Element);

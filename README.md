@@ -6,6 +6,8 @@ Infrastructure for unit-testing Mariposa widgets:
 * The `DOMTester` class, which can interactively run tests against a tree, supporting events
 and DOM traversal.
 * Multiple `Matcher` functions that can be used in unit tests.
+* `convertNode`, which converts a `package:html` `Node` to a
+`package:html_builder` `Node`.
 
 For best results, use `package:test`. 
 
