@@ -32,8 +32,8 @@ void main() {
     return div(
       c: [
         h1(
+          id: 'foo',
           className: 'heading',
-          p: {'id': 'foo'},
           c: [text('H1!!!')],
         ),
         myWidget(),
