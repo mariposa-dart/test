@@ -52,6 +52,26 @@ class DOMTester {
     }
   }
 
+  /// Returns the first element with the given [id].
+  DOMTesterElement getElementById(String id) {
+    var el = document.getElementById(id);
+    return el == null ? null : new DOMTesterElement(el);
+  }
+
+  /// Finds all elements with the given [classNames].
+  Iterable<DOMTesterElement> getElementsByClassName(String classNames) {
+    return document
+        .getElementsByClassName(classNames)
+        .map((el) => new DOMTesterElement(el));
+  }
+
+  /// Finds all elements with the given [tagNames].
+  Iterable<DOMTesterElement> getElementsByTagName(String tagNames) {
+    return document
+        .getElementsByTagName(tagNames)
+        .map((el) => new DOMTesterElement(el));
+  }
+
   /// Returns the first element that matches the given [selector].
   DOMTesterElement querySelector(String selector) {
     var el = document.querySelector(selector);
