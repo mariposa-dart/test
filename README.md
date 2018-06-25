@@ -1,6 +1,6 @@
 # mariposa_test
 [![Pub](https://img.shields.io/pub/v/mariposa_test.svg)](https://pub.dartlang.org/packages/mariposa_test)
-[![build status](https://travis-ci.org/mariposa-dart/mariposa_test.svg)](https://travis-ci.org/mariposa-dart/mariposa_test)
+[![build status](https://travis-ci.org/mariposa-dart/test.svg)](https://travis-ci.org/mariposa-dart/test)
 
 Infrastructure for unit-testing Mariposa widgets:
 * The `DOMTester` class, which can interactively run tests against a tree, supporting events
