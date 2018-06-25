@@ -173,7 +173,6 @@ class DOMTesterElement extends AbstractElement<dynamic, Element> {
         .listen(callback);
   }
 
-  // TODO: implement parent
   @override
   DOMTesterElement get parent => nativeElement.parent == null
       ? null
