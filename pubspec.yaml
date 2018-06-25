@@ -6,9 +6,11 @@ description: Infrastructure for unit-testing Mariposa widgets.
 environment:
   sdk: ">=2.0.0-dev <3.0.0"
 dependencies:
+  html: ^0.13.0
   html_builder: ^1.0.0
   matcher: ^0.12.0
   mariposa: ^1.0.0
+  tuple: ^1.0.0
 dev_dependencies:
   test: ^0.12.0
   zen: ^1.0.0
