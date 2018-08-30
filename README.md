@@ -3,7 +3,7 @@
 [![build status](https://travis-ci.org/mariposa-dart/test.svg)](https://travis-ci.org/mariposa-dart/test)
 
 Infrastructure for unit-testing Mariposa widgets:
-* The `DOMTester` class, which can interactively run tests against a tree, supporting events
+* The `DomTester` class, which can interactively run tests against a tree, supporting events
 and DOM traversal.
 * Multiple `Matcher` functions that can be used in unit tests.
 * `convertNode`, which converts a `package:html` `Node` to a
@@ -11,14 +11,14 @@ and DOM traversal.
 
 For best results, use `package:test`. 
 
-# `DOMTester`
-Those familiar with Flutter's `WidgetTester` will understand the `DOMTester` class.
+# `DomTester`
+Those familiar with Flutter's `WidgetTester` will understand the `DomTester` class.
 This class renders Mariposa widgets into an AST from `package:html`, which can then be interacted
 with, as though it were a real browser DOM. Oof course, things like Web API's will be unavailable
 from a command-line setting, but the best practice is to use abstraction to mock these things in
 at testing time, anyways.
 
-The `DOMTester` API is more or less the same as `mariposa/dom` or `mariposa/string`:
+The `DomTester` API is more or less the same as `mariposa/dom` or `mariposa/string`:
 
 ```dart
 import 'dart:async';
@@ -28,7 +28,7 @@ import 'package:mariposa_test/mariposa_test.dart';
 import 'package:test/test.dart';
 
 void main() {
-  DOMTester tester;
+  DomTester tester;
 
   var app = () {
     return div(
@@ -45,14 +45,14 @@ void main() {
   };
 
   setUp(() {
-    tester = new DOMTester()..render(app);
+    tester = new DomTester()..render(app);
   });
 
   tearDown(() => tester.close());
 }
 ```
 
-However, `DOMTester` exposes the following functionality for easy testing:
+However, `DomTester` exposes the following functionality for easy testing:
 
 * `getElementById`
 * `querySelector`
@@ -60,7 +60,7 @@ However, `DOMTester` exposes the following functionality for easy testing:
 * `fire` - Fire an event from an element
 * `nextEvent` - Listen for the next event of a specific type fired by an element
 
-`DOMTester` methods deal with objects of the type `DOMTesterElement`, which has a property
+`DomTester` methods deal with objects of the type `DomTesterElement`, which has a property
 `nativeElement` that points to a `package:html` element. For complex functionality, feel free
 to use this provision.
 

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:angel_container/angel_container.dart';
 import 'package:html/dom.dart' hide Node;
 import 'package:html/dom.dart' as html show Node;
 import 'package:html_builder/html_builder.dart';
+import 'package:mariposa/src/render_context_impl.dart';
 import 'package:mariposa/mariposa.dart';
 import 'package:tuple/tuple.dart';
 
@@ -22,16 +24,22 @@ Node convertNode(html.Node node) {
 
 /// A class that renders Mariposa widgets into a `package:html` [Document].
 ///
-/// [DOMTester] exposes friendly API's that make it easy to test isomorphic Mariposa applications.
-class DOMTester {
-  /// The [RenderContext] context that all nodes are ultimately rendered against.
-  final RenderContext renderContext = new RenderContext(null);
+/// [DomTester] exposes friendly API's that make it easy to test isomorphic Mariposa applications.
+class DomTester {
+  RenderContextImpl _renderContext;
 
   /// The `package:html` that the tree is rendered into.
   final Document document = new Document.html('<html><body></body></html>');
 
-  final Map<Element, List<Tuple2<DOMTesterElement, Widget>>> _elements = {};
+  final Map<Element, List<Tuple2<DomTesterElement, Widget>>> _elements = {};
   void Function() _rerender;
+
+  DomTester({Reflector reflector: const EmptyReflector()}) {
+    _renderContext = new RenderContextImpl(reflector);
+  }
+
+  /// The [RenderContext] context that all nodes are ultimately rendered against.
+  RenderContext get renderContext => _renderContext;
 
   /// Renders a UI that can then be interacted with.
   void render([Node Function() app]) {
@@ -42,10 +50,18 @@ class DOMTester {
       _rerender = () => _render(app);
       _rerender();
     }
+
+    if (_renderContext.tasks.isNotEmpty) {
+      while (_renderContext.tasks.isNotEmpty) {
+        _renderContext.tasks.removeFirst()(_renderContext);
+      }
+
+      _rerender();
+    }
   }
 
   /// Triggers an event in the [element].
-  void fire(DOMTesterElement element, String eventName, [data]) {
+  void fire(DomTesterElement element, String eventName, [data]) {
     element._events
         .putIfAbsent(
             eventName, () => new StreamController.broadcast(sync: true))
@@ -53,7 +69,7 @@ class DOMTester {
   }
 
   /// Returns a [Future] that completes when the [element] fires an event with the given [eventName].
-  Future<T> nextEvent<T>(DOMTesterElement element, String eventName) {
+  Future<T> nextEvent<T>(DomTesterElement element, String eventName) {
     var c = new Completer<T>();
     StreamSubscription<T> sub;
 
@@ -84,42 +100,42 @@ class DOMTester {
 
     _elements.clear();
 
-    for (var el in DOMTesterElement._cache.keys.toList()) {
-      await DOMTesterElement._cache[el]?.close();
+    for (var el in DomTesterElement._cache.keys.toList()) {
+      await DomTesterElement._cache[el]?.close();
     }
   }
 
   /// Returns the first element with the given [id].
-  DOMTesterElement getElementById(String id) {
+  DomTesterElement getElementById(String id) {
     var el = document.getElementById(id);
-    return el == null ? null : new DOMTesterElement(el);
+    return el == null ? null : new DomTesterElement(el);
   }
 
   /// Finds all elements with the given [classNames].
-  Iterable<DOMTesterElement> getElementsByClassName(String classNames) {
+  Iterable<DomTesterElement> getElementsByClassName(String classNames) {
     return document
         .getElementsByClassName(classNames)
-        .map((el) => new DOMTesterElement(el));
+        .map((el) => new DomTesterElement(el));
   }
 
   /// Finds all elements with the given [tagNames].
-  Iterable<DOMTesterElement> getElementsByTagName(String tagNames) {
+  Iterable<DomTesterElement> getElementsByTagName(String tagNames) {
     return document
         .getElementsByTagName(tagNames)
-        .map((el) => new DOMTesterElement(el));
+        .map((el) => new DomTesterElement(el));
   }
 
   /// Returns the first element that matches the given [selector].
-  DOMTesterElement querySelector(String selector) {
+  DomTesterElement querySelector(String selector) {
     var el = document.querySelector(selector);
-    return el == null ? null : new DOMTesterElement(el);
+    return el == null ? null : new DomTesterElement(el);
   }
 
   /// Returns all elements that match the given [selector].
-  Iterable<DOMTesterElement> querySelectorAll(String selector) {
+  Iterable<DomTesterElement> querySelectorAll(String selector) {
     return document
         .querySelectorAll(selector)
-        .map((el) => new DOMTesterElement(el));
+        .map((el) => new DomTesterElement(el));
   }
 
   void _render(Node Function() app) {
@@ -158,7 +174,7 @@ class DOMTester {
         : widget.render();
     _renderNode(node, target, context);
 
-    var ref = new DOMTesterElement(target);
+    var ref = new DomTesterElement(target);
     widget is ContextAwareWidget
         ? widget.contextAwareAfterRender(context, ref)
         : widget.afterRender(ref);
@@ -189,16 +205,16 @@ class DOMTester {
 }
 
 /// A wrapper around a `package:html` [Element].
-class DOMTesterElement extends AbstractElement<dynamic, Element> {
+class DomTesterElement extends AbstractElement<dynamic, Element> {
   final Element nativeElement;
 
-  static final Map<Element, DOMTesterElement> _cache = {};
+  static final Map<Element, DomTesterElement> _cache = {};
   final Map<String, StreamController> _events = {};
 
-  factory DOMTesterElement(Element nativeElement) => _cache.putIfAbsent(
-      nativeElement, () => new DOMTesterElement._(nativeElement));
+  factory DomTesterElement(Element nativeElement) => _cache.putIfAbsent(
+      nativeElement, () => new DomTesterElement._(nativeElement));
 
-  DOMTesterElement._(this.nativeElement);
+  DomTesterElement._(this.nativeElement);
 
   @override
   Map<String, String> get attributes => nativeElement.attributes
@@ -211,8 +227,8 @@ class DOMTesterElement extends AbstractElement<dynamic, Element> {
   void set value(String v) => nativeElement.attributes['value'] = v;
 
   @override
-  Iterable<DOMTesterElement> get children =>
-      nativeElement.children.map((el) => new DOMTesterElement(el));
+  Iterable<DomTesterElement> get children =>
+      nativeElement.children.map((el) => new DomTesterElement(el));
 
   @override
   Future close() async {
@@ -233,20 +249,20 @@ class DOMTesterElement extends AbstractElement<dynamic, Element> {
   }
 
   @override
-  DOMTesterElement get parent => nativeElement.parent == null
+  DomTesterElement get parent => nativeElement.parent == null
       ? null
-      : new DOMTesterElement(nativeElement.parent);
+      : new DomTesterElement(nativeElement.parent);
 
   @override
-  DOMTesterElement querySelector(String selectors) {
+  DomTesterElement querySelector(String selectors) {
     var el = nativeElement.querySelector(selectors);
-    return el == null ? null : new DOMTesterElement(el);
+    return el == null ? null : new DomTesterElement(el);
   }
 
   @override
-  Iterable<DOMTesterElement> querySelectorAll(String selectors) {
+  Iterable<DomTesterElement> querySelectorAll(String selectors) {
     return nativeElement
         .querySelectorAll(selectors)
-        .map((el) => new DOMTesterElement(el));
+        .map((el) => new DomTesterElement(el));
   }
 }

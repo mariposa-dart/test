@@ -6,8 +6,8 @@ import 'package:test/test.dart';
 
 void main() {
   Completer afterRenderCompleter, beforeDestroyCompleter;
-  DOMTester tester;
-  DOMTesterElement h1Element;
+  DomTester tester;
+  DomTesterElement h1Element;
   Node convertedH1Element;
 
   var app = () {
@@ -27,7 +27,7 @@ void main() {
   setUp(() {
     afterRenderCompleter = new Completer();
     beforeDestroyCompleter = new Completer();
-    tester = new DOMTester()..render(app);
+    tester = new DomTester()..render(app);
     h1Element = tester.querySelector('h1');
     convertedH1Element = convertNode(h1Element.nativeElement);
     print(tester.document.outerHtml);
@@ -84,6 +84,41 @@ void main() {
     await tester.clear();
     expect(beforeDestroyCompleter.isCompleted, true);
   });
+
+  test('enqueues tasks', () {
+    var buf = new StringBuffer();
+    var tester = new DomTester();
+    var app = () {
+      return new TaskEnqueuingWidget(buf);
+    };
+
+    tester.render(app);
+    print(buf);
+    expect(buf.toString(), 'hello!');
+  });
+}
+
+class TaskEnqueuingWidget extends ContextAwareWidget {
+  static bool written = false;
+
+  final StringBuffer buf;
+
+  TaskEnqueuingWidget(this.buf);
+
+  @override
+  void contextAwareAfterRender(RenderContext context, AbstractElement element) {
+    if (!written) {
+      context.enqueue((_) {
+        buf.write('hello!');
+        written = true;
+      });
+    }
+  }
+
+  @override
+  Node contextAwareRender(RenderContext context) {
+    return div();
+  }
 }
 
 class AfterRenderCompleterWidget extends Widget {
